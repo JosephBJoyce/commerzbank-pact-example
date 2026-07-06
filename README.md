@@ -27,7 +27,7 @@ Inside your PactFlow workspace:
 
 ### Step 3 — Configure this repository
 
-In your GitHub repository go to **Settings → Secrets and variables → Actions** and add:
+Fork this repo. Then, go to **Settings → Secrets and variables → Actions** and add:
 
 | Type | Name | Value |
 |---|---|---|
