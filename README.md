@@ -22,9 +22,8 @@ The trial includes unlimited users and integrations for 30 days. For an enterpri
 
 Inside your PactFlow workspace:
 
-1. Click your avatar → **Settings** → **API Tokens**
-2. Click **Create token** → give it a name (e.g. `github-actions`)
-3. Copy the token — you will only see it once
+1. Click **Settings** → **Tokens**
+2. Click **Copy Token Value** underneath Read/write token
 
 ### Step 3 — Configure this repository
 
