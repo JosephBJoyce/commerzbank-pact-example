@@ -18,7 +18,7 @@ jobs:
         working-directory: services/customers-api
 
     env:
-      PACT_BROKER_BASE_URL: https://smart-bank.pactflow.io
+      PACT_BROKER_BASE_URL: ${{ vars.PACT_BROKER_BASE_URL }}
       PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
       PACT_BROKER_PUBLISH_VERIFICATION_RESULTS: 'true'
       GITHUB_SHA: ${{ github.sha }}
