@@ -1,0 +1,64 @@
+name: Consumer - Customers Mobile
+
+on:
+  push:
+    branches:
+      - main
+      - '**'
+    paths:
+      - 'consumers/customers-mobile-consumer/**'
+      - '.github/workflows/consumer-customers.yml'
+  workflow_dispatch:
+
+jobs:
+  test-and-publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: consumers/customers-mobile-consumer
+
+    env:
+      PACT_BROKER_BASE_URL: https://smart-bank.pactflow.io
+      PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: consumers/customers-mobile-consumer/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Pact consumer tests
+        run: npm test
+
+      - name: Publish pacts to PactFlow
+        run: |
+          npx pact-broker publish ./pacts \
+            --broker-base-url "$PACT_BROKER_BASE_URL" \
+            --broker-token "$PACT_BROKER_TOKEN" \
+            --consumer-app-version "${{ github.sha }}" \
+            --branch "${{ github.ref_name }}"
+
+      - name: Can I deploy?
+        run: |
+          npx pact-broker can-i-deploy \
+            --broker-base-url "$PACT_BROKER_BASE_URL" \
+            --broker-token "$PACT_BROKER_TOKEN" \
+            --pacticipant commerzbank-customers-mobile-consumer \
+            --version "${{ github.sha }}" \
+            --to-environment production
+
+      - name: Record deployment to production
+        if: github.ref_name == 'main'
+        run: |
+          npx pact-broker record-deployment \
+            --broker-base-url "$PACT_BROKER_BASE_URL" \
+            --broker-token "$PACT_BROKER_TOKEN" \
+            --pacticipant commerzbank-customers-mobile-consumer \
+            --version "${{ github.sha }}" \
+            --environment production

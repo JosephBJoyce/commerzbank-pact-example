@@ -1,0 +1,59 @@
+name: Provider - Customers API (Classic CDC)
+
+on:
+  push:
+    branches:
+      - main
+      - '**'
+    paths:
+      - 'services/customers-api/**'
+      - '.github/workflows/provider-customers.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/customers-api
+
+    env:
+      PACT_BROKER_BASE_URL: https://smart-bank.pactflow.io
+      PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+      PACT_BROKER_PUBLISH_VERIFICATION_RESULTS: 'true'
+      GITHUB_SHA: ${{ github.sha }}
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: services/customers-api/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify pacts from PactFlow
+        run: npm test
+
+      - name: Can I deploy?
+        run: |
+          npx pact-broker can-i-deploy \
+            --broker-base-url "$PACT_BROKER_BASE_URL" \
+            --broker-token "$PACT_BROKER_TOKEN" \
+            --pacticipant commerzbank-customers-api \
+            --version "${{ github.sha }}" \
+            --to-environment production
+
+      - name: Record deployment to production
+        if: github.ref_name == 'main'
+        run: |
+          npx pact-broker record-deployment \
+            --broker-base-url "$PACT_BROKER_BASE_URL" \
+            --broker-token "$PACT_BROKER_TOKEN" \
+            --pacticipant commerzbank-customers-api \
+            --version "${{ github.sha }}" \
+            --environment production

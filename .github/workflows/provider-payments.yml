@@ -1,0 +1,74 @@
+name: Provider - Corporate Payments API (BDCT)
+
+on:
+  push:
+    branches:
+      - main
+      - '**'
+    paths:
+      - 'services/corporate-payments-api/**'
+      - '.github/workflows/provider-payments.yml'
+  workflow_dispatch:
+
+jobs:
+  self-verify-and-publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/corporate-payments-api
+
+    env:
+      PACT_BROKER_BASE_URL: https://smart-bank.pactflow.io
+      PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: services/corporate-payments-api/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Self-verify OpenAPI spec against running server
+        run: npm test
+
+      - name: Publish provider contract to PactFlow (BDCT)
+        run: |
+          docker run --rm \
+            -e PACT_BROKER_BASE_URL \
+            -e PACT_BROKER_TOKEN \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            pactfoundation/pact-cli:latest \
+            pactflow publish-provider-contract \
+              /workspace/services/corporate-payments-api/openapi/corporate-payments-api.yml \
+              --provider "commerzbank-corporate-payments-api" \
+              --provider-app-version "${{ github.sha }}" \
+              --branch "${{ github.ref_name }}" \
+              --content-type application/yaml \
+              --verification-results /workspace/services/corporate-payments-api/verification-results.json \
+              --verification-results-content-type application/json \
+              --verifier jest \
+              --verification-exit-code 0
+
+      - name: Can I deploy?
+        run: |
+          npx pact-broker can-i-deploy \
+            --broker-base-url "$PACT_BROKER_BASE_URL" \
+            --broker-token "$PACT_BROKER_TOKEN" \
+            --pacticipant commerzbank-corporate-payments-api \
+            --version "${{ github.sha }}" \
+            --to-environment production
+
+      - name: Record deployment to production
+        if: github.ref_name == 'main'
+        run: |
+          npx pact-broker record-deployment \
+            --broker-base-url "$PACT_BROKER_BASE_URL" \
+            --broker-token "$PACT_BROKER_TOKEN" \
+            --pacticipant commerzbank-corporate-payments-api \
+            --version "${{ github.sha }}" \
+            --environment production

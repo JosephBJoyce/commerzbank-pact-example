@@ -1,0 +1,63 @@
+name: Setup PactFlow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      PACT_BROKER_BASE_URL: https://smart-bank.pactflow.io
+      PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+
+    steps:
+      - name: Create production environment
+        run: |
+          curl -sf -o /dev/null -X POST "$PACT_BROKER_BASE_URL/environments" \
+            -H "Authorization: Bearer $PACT_BROKER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"production","displayName":"Production","production":true}' \
+          || echo "Environment may already exist, continuing"
+
+      - name: Create staging environment
+        run: |
+          curl -sf -o /dev/null -X POST "$PACT_BROKER_BASE_URL/environments" \
+            -H "Authorization: Bearer $PACT_BROKER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"staging","displayName":"Staging","production":false}' \
+          || echo "Environment may already exist, continuing"
+
+      - name: Register customers-mobile-consumer
+        run: |
+          curl -sf -o /dev/null -X POST "$PACT_BROKER_BASE_URL/pacticipants" \
+            -H "Authorization: Bearer $PACT_BROKER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"commerzbank-customers-mobile-consumer","repositoryUrl":"https://github.com/JosephBJoyce/commerzbank-pact-example"}' \
+          || echo "Pacticipant may already exist, continuing"
+
+      - name: Register payments-web-consumer
+        run: |
+          curl -sf -o /dev/null -X POST "$PACT_BROKER_BASE_URL/pacticipants" \
+            -H "Authorization: Bearer $PACT_BROKER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"commerzbank-payments-web-consumer","repositoryUrl":"https://github.com/JosephBJoyce/commerzbank-pact-example"}' \
+          || echo "Pacticipant may already exist, continuing"
+
+      - name: Register customers-api (provider)
+        run: |
+          curl -sf -o /dev/null -X POST "$PACT_BROKER_BASE_URL/pacticipants" \
+            -H "Authorization: Bearer $PACT_BROKER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"commerzbank-customers-api","repositoryUrl":"https://github.com/JosephBJoyce/commerzbank-pact-example"}' \
+          || echo "Pacticipant may already exist, continuing"
+
+      - name: Register corporate-payments-api (provider)
+        run: |
+          curl -sf -o /dev/null -X POST "$PACT_BROKER_BASE_URL/pacticipants" \
+            -H "Authorization: Bearer $PACT_BROKER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"commerzbank-corporate-payments-api","repositoryUrl":"https://github.com/JosephBJoyce/commerzbank-pact-example"}' \
+          || echo "Pacticipant may already exist, continuing"
+
+      - name: Done
+        run: echo "PactFlow setup complete"

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude-in-chrome__navigate",
+      "mcp__claude-in-chrome__read_page",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Initial commit: Commerzbank Pact contract testing example *)"
+    ]
+  }
+}
