@@ -143,23 +143,3 @@ services/
     openapi/corporate-payments-api.yml   # OpenAPI 3.0 spec published to PactFlow
     tests/provider.bdct.test.js   # Self-verifies spec → writes verification-results.json
 ```
-
----
-
-## Technical notes
-
-### Why no `Content-Type` header matchers?
-
-The Pact FFI (the Rust core used in `@pact-foundation/pact` v13) panics when any matcher — `like()`, `regex()`, `eachLike()` — is applied to a `Content-Type` header on either the request or response side. The fix is to omit `headers:` from `willRespondWith` entirely. Content type conformance is validated at the OpenAPI spec level in BDCT, and is not something consumers should be asserting in CDC tests anyway.
-
-### Why Docker for `pactflow publish-provider-contract`?
-
-The `pactflow publish-provider-contract` command only exists inside the official `pactfoundation/pact-cli` Docker image. It is not available in the `@pact-foundation/pact-node` npm CLI, the `pact_broker-client` Ruby gem, or any other package. The provider workflow pulls the image at runtime — no pre-installation needed.
-
-### Why `--verification-exit-code 0`?
-
-PactFlow derives whether self-verification passed from the `--verification-exit-code` CLI flag, not by parsing the JSON results file. Passing `0` tells PactFlow the verification succeeded.
-
-### Why `PACT_BROKER_BASE_URL` is a variable, not a secret
-
-The workspace URL (`https://commerzbank.pactflow.io`) is not sensitive. Storing it as a GitHub Actions **variable** (`vars.PACT_BROKER_BASE_URL`) rather than a secret means it appears in workflow logs, making it straightforward to confirm which environment a workflow is targeting. Only the API token (`PACT_BROKER_TOKEN`) needs to be a secret.
