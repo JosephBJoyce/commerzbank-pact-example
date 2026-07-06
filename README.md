@@ -57,8 +57,8 @@ After the first run, all workflows trigger automatically on push.
 
 | Approach | Consumer | Provider | API |
 |---|---|---|---|
-| **Classic CDC** | `customers-mobile-consumer` | `customers-api` | [Customers API v2](https://developer.commerzbank.com/products/api-catalog/sandbox/customers-api/v2) |
-| **BDCT** | `payments-web-consumer` | `corporate-payments-api` | [Corporate Payments API v1](https://developer.commerzbank.com/products/api-catalog/sandbox/corporate-payments-api/1/v1/bulk-payments) |
+| **Classic Consumer-Driven Contract Testing** | `customers-mobile-consumer` | `customers-api` | [Customers API v2](https://developer.commerzbank.com/products/api-catalog/sandbox/customers-api/v2) |
+| **Bi-Directional Contract Testing** | `payments-web-consumer` | `corporate-payments-api` | [Corporate Payments API v1](https://developer.commerzbank.com/products/api-catalog/sandbox/corporate-payments-api/1/v1/bulk-payments) |
 
 ---
 
